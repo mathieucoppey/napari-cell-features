@@ -1,0 +1,10 @@
+name: napari-cell-features
+display_name: Cell Features
+contributions:
+  commands:
+    - id: napari-cell-features.make_widget
+      python_name: napari_cell_features._widget:CellFeaturesWidget
+      title: Make Cell Features Widget
+  widgets:
+    - command: napari-cell-features.make_widget
+      display_name: Cell Features
