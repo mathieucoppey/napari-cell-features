@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QDialog
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QDialog, QSizePolicy
 from PyQt5.QtCore import Qt
 import numpy as np
 
@@ -16,9 +16,15 @@ def extract_time_series(image_layer, labels_layer, label_id):
     data = image_layer.data
     labels = labels_layer.data
     
+    # Handle multiscale
+    if isinstance(data, list): data = data[0]
+    if isinstance(labels, list): labels = labels[0]
+    
     # Check dimensions
     if data.ndim == 3: # T, Y, X
-        times = range(data.shape[0])
+        # Use the minimum length to avoid index errors if layers mismatch
+        n_frames = min(data.shape[0], labels.shape[0])
+        times = range(n_frames)
         intensities = []
         for t in times:
             mask = labels[t] == label_id
@@ -39,13 +45,15 @@ def extract_time_series(image_layer, labels_layer, label_id):
     return [], []
 
 class MplCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, parent=None, width=3, height=2, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         fig.patch.set_alpha(0) # Transparent figure background
         self.axes = fig.add_subplot(111)
         self.axes.patch.set_alpha(0) # Transparent axes background
         super(MplCanvas, self).__init__(fig)
         self.setStyleSheet("background-color:transparent;")
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.updateGeometry()
 
 class PopupPlot(QDialog):
     def __init__(self, parent=None, title="Cell Features"):
